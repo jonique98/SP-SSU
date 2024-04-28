@@ -27,7 +27,7 @@ int make_symbol_table_output(const char *symtab_dir,
     }
 
     for (int i = 0; i < symbol_table_length; i++) {
-        fprintf(fp, "%s\t%04X\t%s\n", symbol_table[i]->name, symbol_table[i]->addr, symbol_table[i]->label);
+        fprintf(fp, "%s\t%04X\t+1\t%s\n", symbol_table[i]->name, symbol_table[i]->addr, symbol_table[i]->label);
     }
 
     fclose(fp);
@@ -57,74 +57,6 @@ int make_literal_table_output(const char *literal_table_dir,
     fclose(fp);
     return 0;
 }
-
-// int main(int argc, char **argv) {
-//     // SIC/XE 머신의 instruction 정보를 저장하는 테이블이다.
-//     inst *inst_table[MAX_INST_TABLE_LENGTH];
-//     int inst_table_length;
-
-//     // 소스코드를 저장하는 테이블이다. 라인 단위 저장한다.
-//     char *input[MAX_INPUT_LINES];
-//     int input_length;
-
-//     // 소스코드의 각 라인을 토큰으로 전환하여 저장한다.
-//     token *tokens[MAX_INPUT_LINES];
-//     int tokens_length;
-
-//     // 소스코드 내의 심볼을 저장하는 테이블이다. 추후 과제에 사용 예정.
-//     symbol *symbol_table[MAX_TABLE_LENGTH];
-//     int symbol_table_length;
-
-//     // 소스코드 내의 리터럴을 저장하는 테이블이다. 추후 과제에 사용 예정.
-//     literal *literal_table[MAX_TABLE_LENGTH];
-//     int literal_table_length;
-
-//     // 오브젝트 코드를 저장하는 테이블이다. 추후 과제에 사용 예정.
-//     char object_code[MAX_OBJECT_CODE_LENGTH][MAX_OBJECT_CODE_STRING];
-//     int object_code_length;
-
-//     int err = 0;
-
-//     if ((err = init_inst_table(inst_table, &inst_table_length, "inst_table.txt")) < 0) {
-//         fprintf(stderr, "init_inst_table: 기계어 목록 초기화에 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-//     if ((err = init_input(input, &input_length, "input.txt")) < 0) {
-//         fprintf(stderr, "init_input: 소스코드 입력에 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-//     if ((err = assem_pass1((const inst **)inst_table, inst_table_length,
-//                            (const char **)input, input_length, tokens,
-//                            &tokens_length, symbol_table, &symbol_table_length,
-//                            literal_table, &literal_table_length)) < 0) {
-//         fprintf(stderr, "assem_pass1: 패스1 과정에서 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-//     if ((err = make_opcode_output("./output_20181259.txt",
-//                                   (const token **)tokens,
-//                                   tokens_length,
-//                                   (const inst **)inst_table,
-//                                   inst_table_length)) < 0) {
-//         fprintf(stderr, "make_opcode_output: opcode 파일 출력 과정에서 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-//     if ((err = make_symbol_table_output("symtab_20181259", (const symbol **)symbol_table, symbol_table_length)) < 0) {
-//         fprintf(stderr, "make_symbol_table_output: 심볼테이블 파일 출력 과정에서 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-//     if ((err = make_literal_table_output("littab_20181259", (const literal **)literal_table, literal_table_length)) < 0) {
-//         fprintf(stderr, "make_literal_table_output: 리터럴테이블 파일 출력 과정에서 실패했습니다. (error_code: %d)\n", err);
-//         return -1;
-//     }
-
-
-//     return 0;
-// }
 
 unsigned int get_register_number(char *reg) {
     if (strcmp(reg, "A") == 0)
@@ -172,6 +104,7 @@ char *convert_binary(char nixbpe) {
     }
     return binary;
 }
+
 
 int find_from_token_operator(char *operator, const token *tokens[], int tokens_length) {
     for (int i = 0; i < tokens_length; i++) {
@@ -237,7 +170,7 @@ char *get_literal(char *operand) {
     return literal;
 }
 
-
+//main program을 오브젝트 코드로 변환하는 함수
 int init_main_program(int *assem_index,
                         object_code *obj_code,
                         const token *tokens[], int tokens_length,
@@ -253,6 +186,7 @@ int init_main_program(int *assem_index,
     char *start_symbol = tokens[start_index]->label;
     int start_addr = symbol_table[is_in_symbol_table(start_symbol, (symbol **)symbol_table, symbol_table_length)]->addr;
 
+    //헤더 레코드에 시작 심볼과 시작 주소를 저장
     obj_code->main_program.header_record.header_symbol = start_symbol;
     obj_code->main_program.header_record.start_address = start_addr;
 
@@ -264,13 +198,14 @@ int init_main_program(int *assem_index,
 
     obj_code_data *main = &(obj_code->main_program);
 
-
+    // 텍스트 테이블 초기화를 위한 변수들
     int text_index = 0;
     int text_length = 0;
 
     int text_table_index = 0;
 
     int text_loc = start_addr;
+    //프로그램 카운터
     int pc = start_addr;
 
     int modification_index = 0;
@@ -288,7 +223,7 @@ int init_main_program(int *assem_index,
         unsigned int assembled_code = 0;
 
         if (strcmp(tokens[text_index]->operator, "END") == 0){
-            //남은 리터럴 처리 밑에 참고해서
+            //end 레코드 만났을 때 남은 리터럴이 있다면 여기에 선언
             for (int i = 0; i < literal_length; i++) {
                 int leteral_len = strlen(main->literals[i]);
                 int temp_assem_code = 0;
@@ -308,6 +243,7 @@ int init_main_program(int *assem_index,
 
 
         }
+        //CSECT를 만나면 서브루틴으로 이동
         if (strcmp(tokens[text_index]->operator, "CSECT") == 0)
             break;
 
@@ -316,6 +252,7 @@ int init_main_program(int *assem_index,
             continue;
         }
 
+        //extref와 extdef를 구조체에 저장
         if (strcmp(tokens[text_index]->operator, "EXTREF") == 0) {
             int extref_index = 0;
             while(extref_index < 3 && tokens[text_index]->operand[extref_index]) {
@@ -331,9 +268,9 @@ int init_main_program(int *assem_index,
             int operand_index = 0;
 
             while (operand_index < 3 && tokens[text_index]->operand[operand_index]) {
-                main->extdef[extdef_index].symbol = tokens[text_index]->operand[operand_index];
+                main->extdef_table[extdef_index].symbol = tokens[text_index]->operand[operand_index];
                 int index = is_in_symbol_table_wrapper(tokens[text_index]->operand[extdef_index], main->header_record.header_symbol, (symbol **)symbol_table, symbol_table_length);
-                main->extdef[extdef_index].addr = symbol_table[index]->addr;
+                main->extdef_table[extdef_index].addr = symbol_table[index]->addr;
                 extdef_index++;
                 operand_index++;
             }
@@ -342,13 +279,14 @@ int init_main_program(int *assem_index,
             continue ;
         }
 
+        //리터럴 테이블 초기화
          if (tokens[text_index]->operand[0] && tokens[text_index]->operand[0][0] == '='){
             if(is_in_program_literal_table(main->literals, tokens[text_index]->operand[0]) == -1){
                 main->literals[literal_length] = get_literal(tokens[text_index]->operand[0]);
                 literal_length++;
             }
         }
-
+        //ltorg 만나면 리터럴 초기화
           if (strcmp(tokens[text_index]->operator, "LTORG") == 0) {
             for (int i = 0; i < literal_length; i++) {
                 int leteral_len = strlen(main->literals[i]);
@@ -370,8 +308,10 @@ int init_main_program(int *assem_index,
             continue;
         }
 
+        //레이블 예외 처리를 지나고 명령어를 만났을 때는 프로그램 카운터 계산
         pc = calculate_pc(text_loc, tokens[text_index]->operator);
 
+        //Reserve 관련 명령어 처리
         if (strcmp(tokens[text_index]->operator, "RESW") == 0){
             text_loc += 3 * atoi(tokens[text_index]->operand[0]);
         }
@@ -463,7 +403,7 @@ int init_main_program(int *assem_index,
                     strcat(temp2, temp);
                     temp = temp2;
     
-                //modification record
+                    //modification record
                     main->modification_table[modification_index].addr = text_loc;
                     main->modification_table[modification_index].modification_length = 6;
                     main->modification_table[modification_index].symbol = temp;
@@ -487,6 +427,7 @@ int init_main_program(int *assem_index,
                 fprintf(stderr, "init_main_program: 명령어가 잘못되었습니다.\n");
                 return -1;
             }
+            //format에 따라서 assembled_code를 만들어줌
             assembled_code = inst_table[inst_index]->op;
             if (get_format_wrapper(tokens[text_index]->operator, inst_index, inst_table) == 2) {
                 assembled_code = assembled_code << 8;
@@ -522,6 +463,7 @@ int init_main_program(int *assem_index,
                 }
                 text_loc += 3;
             }
+            //4형식일때는 modification record 같이 초기화
             else if (get_format_wrapper(tokens[text_index]->operator, inst_index, inst_table) == 4) {
                 assembled_code = assembled_code << 24;
                 assembled_code |= tokens[text_index]->nixbpe << 20;
@@ -559,8 +501,6 @@ int init_main_program(int *assem_index,
         main->text[text_table_index].text = assembled_code;
         main->text[text_table_index].operator = tokens[text_index]->operator;
         text_table_index++;
-        // print operator and nixbpe as binary
-        // printf("%s %s\n", tokens[text_index]->operator, convert_binary(tokens[text_index]->nixbpe));
         text_index++;
     }
 
@@ -575,7 +515,7 @@ int init_main_program(int *assem_index,
 }
 
 
-
+//서브루틴도 main에서 했던 것 그대로 진행
 int init_subroutine(int *assem_index,
                         object_code *obj_code,
                         const token *tokens[], int tokens_length,
@@ -684,9 +624,9 @@ int init_subroutine(int *assem_index,
             int extdef_index = 0;
             int operand_index = 0;
             while(operand_index < 3 && tokens[text_index]->operand[operand_index]) {
-                subroutine->extdef[extdef_index].symbol = tokens[text_index]->operand[operand_index];
+                subroutine->extdef_table[extdef_index].symbol = tokens[text_index]->operand[operand_index];
                 int index = is_in_symbol_table_wrapper(tokens[text_index]->operand[extdef_index], subroutine->header_record.header_symbol, (symbol **)symbol_table, symbol_table_length);
-                subroutine->extdef[extdef_index].addr = symbol_table[index]->addr;
+                subroutine->extdef_table[extdef_index].addr = symbol_table[index]->addr;
                 extdef_index++;
                 operand_index++;
             }
@@ -828,7 +768,7 @@ int init_subroutine(int *assem_index,
                    } 
                 }
                 else {             
-                        //+기호 붙이기
+                    //+기호 붙이기
                     char *temp = tokens[text_index]->operand[0];
                     char *temp2 = (char *)malloc(sizeof(char) * 10);
                     temp2[0] = '+';
@@ -938,9 +878,6 @@ int init_subroutine(int *assem_index,
         subroutine->text[text_table_index].text = assembled_code;
         subroutine->text[text_table_index].operator = tokens[text_index]->operator;
         text_table_index++;
-
-        // print operator and nixbpe as binary
-        // printf("%s %s\n", tokens[text_index]->operator, convert_binary(tokens[text_index]->nixbpe));
         text_index++;
     }
 
@@ -1048,7 +985,7 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
     if(obj_code->main_program.extdef_length != 0){
         fprintf(fp, "D");
         for(int i = 0; i < obj_code->main_program.extdef_length; i++) {
-            fprintf(fp, "%-6s%06X", obj_code->main_program.extdef[i].symbol, obj_code->main_program.extdef[i].addr);
+            fprintf(fp, "%-6s%06X", obj_code->main_program.extdef_table[i].symbol, obj_code->main_program.extdef_table[i].addr);
         }
         fprintf(fp, "\n");
     }
@@ -1133,7 +1070,7 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
         if(obj_code->subroutine[i].extdef_length != 0){
             fprintf(fp, "D");
             for(int j = 0; j < obj_code->subroutine[i].extdef_length; j++) {
-                fprintf(fp, "%-6s%06X", obj_code->subroutine[i].extdef[j].symbol, obj_code->subroutine[i].extdef[j].addr);
+                fprintf(fp, "%-6s%06X", obj_code->subroutine[i].extdef_table[j].symbol, obj_code->subroutine[i].extdef_table[j].addr);
             }
             fprintf(fp, "\n");
         }
@@ -1147,7 +1084,6 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
             }
             fprintf(fp, "\n");
         }
-
 
         //맨 앞에 T를 쓰고 해당 텍스트의 시작 주소와 줄바꿈 전까지의 길이 출력함 길이는 최대 16진수 1D까지 넘어가면 줄바꿈 해야함
         // 그러므로 미리 길이를 체크해야함
@@ -1181,8 +1117,6 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
             prev_text_index = calculate_print_section(&(obj_code->subroutine[i]), cur_text_index);
         }
 
-
-
         //M 출력
         for(int j = 0; j < obj_code->subroutine[i].modification_table_length; j++) {
             fprintf(fp, "M%06X%02X%s\n", obj_code->subroutine[i].modification_table[j].addr, obj_code->subroutine[i].modification_table[j].modification_length, obj_code->subroutine[i].modification_table[j].symbol);
@@ -1190,11 +1124,7 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
 
         //E 출력과 가독성 위한 개행
         fprintf(fp, "E\n\n");
-
-
     }
-
-
 
 return 0;
 }
@@ -1253,10 +1183,6 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // for(int i = 0; i < tokens_length; i++) {
-    //     printf("%s %s %s %s %s\n", tokens[i]->label, tokens[i]->operator, tokens[i]->operand[0], tokens[i]->operand[1], convert_binary(tokens[i]->nixbpe));
-    // }
-
     /** 프로젝트1에서는 불필요함 */
     /*
     if ((err = make_opcode_output("output_opcode.txt", (const token **)tokens,
@@ -1290,8 +1216,6 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-
-
     if ((err = assem_pass2((const token **)tokens, tokens_length,
                            (const inst **)inst_table, inst_table_length,
                            (const symbol **)symbol_table, symbol_table_length,
@@ -1302,56 +1226,6 @@ int main(int argc, char **argv) {
                 err);
         return -1;
     }
-
-    // 반복문으로 메인 프로그램 로케이션, 심볼, 텍스트 출력
-    // for(int i = 0; i < obj_code->main_program.text_length; i++) {
-        // printf("%s, %06X %08X\n", obj_code->main_program.text[i].operator, obj_code->main_program.text[i].loc, obj_code->main_program.text[i].text);
-    // }
-
-
-    // 두번째 서브루틴 프로그램 로케이션, 심볼, 텍스트 출력
-    // for(int i = 0; i < obj_code->subroutine[1].text_length; i++) {
-    //     printf("%s, %06X %08X\n", obj_code->subroutine[1].text[i].operator, obj_code->subroutine[1].text[i].loc, obj_code->subroutine[1].text[i].text);
-    // }
-
-
-
-
-    // // 심볼테이블 라벨과 함께 출력
-    // for(int i = 0; i < symbol_table_length; i++) {
-    //     printf("%s %06X\n", symbol_table[i]->label, symbol_table[i]->addr);
-    // }
-
-    // for(int i = 0; i < obj_code->main_program.text_length; i++) {
-    //     if(obj_code->main_program.text[i] != 0)
-    //         printf("%08X\n", obj_code->main_program.text[i]);
-    // }
-
-    // for(int i = 0; i < obj_code->subroutine_length; i++) {
-    //     for(int j = 0; j < obj_code->subroutine[i].text_length; j++) {
-    //         if(obj_code->subroutine[i].text[j] != 0)
-    //             printf("%08X\n", obj_code->subroutine[i].text[j]);
-    //     }
-    // }
-
-        // for(int j = 0; j < obj_code->subroutine[0].text_length; j++) {
-            // if(obj_code->subroutine[0].text[j] != 0)
-                // printf("%08X\n", obj_code->subroutine[0].text[j]);
-        // }
-    
-
-    //subroutine의 모디피케이션 출력
-    // for(int i = 0; i < obj_code->subroutine[0].modification_table_length; i++) {
-    //     printf("M%06X%02X%s", obj_code->subroutine[0].modification_table[i].addr, obj_code->subroutine[0].modification_table[i].modification_length, obj_code->subroutine[0].modification_table[i].symbol);
-    // }
-
-    // modificatin 출력
-    // for(int i = 0; i < obj_code->main_program.modification_table_length; i++) {
-    //     printf("M%06X%02X%s", obj_code->main_program.modification_table[i].addr, obj_code->main_program.modification_table[i].modification_length, obj_code->main_program.modification_table[i].symbol);
-    // }
-
-    //program length 출력
-    // printf("D%06X\n", obj_code->main_program.header_record.program_length);
 
     if ((err = make_objectcode_output("output_objectcode.txt",
                                       (const object_code *)obj_code)) < 0) {

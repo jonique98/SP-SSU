@@ -83,7 +83,7 @@ typedef struct _text_table {
 typedef struct _obj_code_data {
     header header_record;
     extref extref_table[MAX_EXTREF];
-    extdef extdef[MAX_EXTDEF];
+    extdef extdef_table[MAX_EXTDEF];
     int extdef_length;
     text_table text[MAX_TEXT_LENGTH];
     int text_length;
