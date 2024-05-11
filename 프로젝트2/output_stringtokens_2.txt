@@ -1,0 +1,56 @@
+<COPY>          <START>         <0>                     <COPY FILE FROM IN TO OUTPUT>
+(no label)      <EXTDEF>        <BUFFER/BUFEND/LENGTH>  (no comment)
+(no label)      <EXTREF>        <RDREC/WRREC>           (no comment)
+<FIRST>         <STL>           <RETADR>                <SAVE RETURN ADDRESS>
+<CLOOP>         +<JSUB>         <RDREC>                 <READ INPUT RECORD>
+(no label)      <LDA>           <LENGTH>                <TEST FOR EOF (LENGTH = 0)>
+(no label)      <COMP>          #<0>                    (no comment)
+(no label)      <JEQ>           <ENDFIL>                <EXIT IF EOF FOUND>
+(no label)      +<JSUB>         <WAAAA>                 <WRITE OUTPUT RECORD>
+(no label)      <J>             <CLOOP>                 <LOOP>
+<ENDFIL>        <LDA>           <=C'EOF'>               <INSERT END OF FILE MARKER>
+(no label)      <STA>           <BUFFER>                (no comment)
+(no label)      <LDA>           #<3>                    <SET LENGTH = 3>
+(no label)      <STA>           <LENGTH>                (no comment)
+(no label)      +<JSUB>         <WRREC>                 <WRITE EOF>
+(no label)      <J>             @<RETADR>               <RETURN TO CALLER>
+<RETADR>        <RESW>          <1>                     (no comment)
+<LENGTH>        <RESW>          <1>                     <LENGTH OF RECORD>
+(no label)      <LTORG>         (no operand)            (no comment)
+<BUFFER>        <RESB>          <4096>                  <4096-BYTE BUFFER AREA>
+<BUFEND>        <EQU>           <*>                     (no comment)
+<MAXLEN>        <EQU>           <BUFEND-BUFFER>         <MAXIMUM RECORD LENGTH>
+(no label)      <END>           <FIRST>                 (no comment)
+<RDREC>         <CSECT>         (no operand)            (no comment)
+(no label)      <EXTREF>        <BUFFER/LENGTH/BUFEND>  (no comment)
+(no label)      <CLEAR>         (no operand)X           <CLEAR LOOP COUNTER>
+(no label)      <CLEAR>         <A>                     <CLEAR A TO ZERO>
+(no label)      <CLEAR>         <S>                     <CLEAR S TO ZERO>
+(no label)      <LDT>           <MAXLEN>                (no comment)
+<RLOOP>         <TD>            <INPUT>                 <TEST INPUT DEVICE>
+(no label)      <JEQ>           <RLOOP>                 <LOOP UNTIL READY>
+(no label)      <RD>            <INPUT>                 <READ CHARACTER INTO REGISTER A>
+(no label)      <COMPR>         <A/S>                   <TEST FOR END OF RECORD (X'00')>
+(no label)      <JEQ>           <EXIT>                  <EXIT LOOP IF EOR>
+(no label)      +<STCH>         <BUFFER>/X              <STORE CHARACTER IN BUFFER>
+(no label)      <TIXR>          <T>                     <LOOP UNLESS MAX LENGTH>
+(no label)      <JLT>           <RLOOP>                 <HAS BEEN REACHED>
+<EXIT>          +<STX>          <LENGTH>                <SAVE RECORD LENGTH>
+(no label)      <RSUB>          (no operand)            <RETURN TO CALLER>
+<INPUT>         <BYTE>          <X'F1'>                 <CODE FOR INPUT DEVICE>
+<MAXLEN>        <WORD>          <BUFEND-BUFFER>         (no comment)
+(no label)      <END>           <FIRST>                 (no comment)
+<WRREC>         <CSECT>         (no operand)            (no comment)
+(no label)      <EXTREF>        <LENGTH/BUFFER>         (no comment)
+(no label)      <CLEAR>         (no operand)X           <CLEAR LOOP COUNTER>
+(no label)      +<LDT>          <LENGTH>                (no comment)
+<WLOOP>         <TD>            <=X'05'>                <TEST OUTPUT DEVICE>
+(no label)      <JEQ>           <WLOOP>                 <LOOP UNTIL READY>
+(no label)      +<LDCH>         <BUFFER>/X              <GET CHARACTER FROM BUFFER>
+(no label)      <WD>            <=X'05'>                <WRITE CHARACTER>
+(no label)      <TIXR>          <T>                     <LOOP UNTIL ALL CHARACTERS>
+(no label)      <JLT>           <WLOOP>                 <HAVE BEEN WRITTEN>
+(no label)      <RSUB>          (no operand)            <RETURN TO CALLER>
+(no label)      <END>           <FIRST>                 (no comment)
+
+pass2에서 오류 발생

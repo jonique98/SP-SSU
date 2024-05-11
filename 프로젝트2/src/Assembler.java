@@ -1,3 +1,12 @@
+/**
+ * @author Enoch Jung (github.com/enochjung)
+ * @file Assembler.java
+ * @date 2024-05-05
+ * @version 1.0.0
+ *
+ * @brief 조교가 구현한 SIC/XE 어셈블러 코드 구조 샘플
+ */
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,6 +16,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+
+import instruction.InstructionTable;
 
 /**
  * SIC/XE 머신을 위한 Assembler 프로그램의 메인 루틴이다.
@@ -53,6 +64,7 @@ public class Assembler {
 		} catch (Exception e) {
 			System.out.println("Error : " + e.getMessage());
 		}
+
 	}
 
 	public Assembler(String instFile) throws FileNotFoundException, IOException {
