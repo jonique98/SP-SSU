@@ -29,8 +29,8 @@ public class LiteralTable {
 	 */
 	public Literal putLiteral(String literal) throws RuntimeException {
 		// TODO: 리터럴 객체를 생성하고, 이를 리터럴 테이블에 추가하기.
-		Literal lit;
-
+		Literal lit = new Literal(literal);
+		_literalMap.put(lit.getLiteral(), lit);
 		return lit;
 	}
 
@@ -64,6 +64,7 @@ public class LiteralTable {
 	 */
 	public int assignAddress(int address) {
 		// TODO: 리터럴 주소값 할당하기.
+
 		int size;
 
 		return size;

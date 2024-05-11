@@ -251,6 +251,8 @@ public class Numeric {
 		// ex. 상수 문자열이 "X'F1'"인 경우 Numeric{_value:0xF1, _relativeMap:[]}을 반환하기.
 
 		BigInteger value;
+		HashMap<Symbol, Integer> map;
+
 
 		return new Numeric(value, new HashMap<Symbol, Integer>());
 	}

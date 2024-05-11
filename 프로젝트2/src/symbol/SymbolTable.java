@@ -48,14 +48,30 @@ public class SymbolTable {
 	 * @throws RuntimeException 잘못된 심볼 생성 시도
 	 */
 	public Symbol put(String name, int address) throws RuntimeException {
-		// TODO: 심볼 추가하기. 만약 심볼이 이미 존재하고 해당 심볼이 주소가 지정되지 않은 심볼일 경우, 주소값 할당하기.
-
 		Symbol symbol;
+
+		// 심볼 테이블에서 해당 이름의 심볼을 찾음
 		Optional<Symbol> optSymbol = search(name);
+
 		if (optSymbol.isPresent()) {
-			// TODO: 해당 심볼이 주소가 지정되지 않은 심볼일 경우 주소값 할당하기.
+			// 심볼이 이미 존재하는 경우
+			Symbol existingSymbol = optSymbol.get();
+
+			// 해당 심볼의 주소가 이미 할당되었는지 확인
+			if (!existingSymbol.getAddress().isPresent()) {
+				// 주소가 할당되지 않은 심볼이면 새 주소를 할당
+				existingSymbol.assign(new Numeric(address, existingSymbol));
+
+				symbol = existingSymbol;
+			} else {
+				// 이미 주소가 할당된 경우, 예외 발생
+				throw new RuntimeException("Symbol '" + name + "' already has an assigned address.");
+			}
 		} else {
-			// TODO: 심볼 추가하기.
+			// 심볼이 존재하지 않는 경우, 새 심볼을 생성하고 테이블에 추가
+
+			symbol = Symbol.createAddressAssignedSymbol(name, new Numeric(address, null));
+			_symbolMap.put(name, symbol);
 		}
 
 		return symbol;
@@ -79,8 +95,16 @@ public class SymbolTable {
 
 		if (optSymbol.isPresent()) {
 			// TODO: 해당 심볼이 주소가 지정되지 않은 심볼일 경우 주소값 할당하기.
+			if (optSymbol.get().getAddress().isEmpty()) {
+				symbol = Symbol.createAddressAssignedSymbol(name, addr);
+				_symbolMap.put(name, symbol);
+			} else {
+				throw new RuntimeException("이미 주소가 할당된 심볼입니다.");
+			}
 		} else {
 			// TODO: 심볼 추가하기.
+			symbol = Symbol.createAddressAssignedSymbol(name, addr);
+			_symbolMap.put(name, symbol);
 		}
 
 		return symbol;

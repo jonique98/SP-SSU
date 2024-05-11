@@ -99,6 +99,9 @@ public class Symbol {
 	static Symbol createExternalSymbol(String name) throws RuntimeException {
 		// TODO: 외부 심볼 객체 생성하기.
 		// Symbol symbol = new Symbol(?, ?, ?);
+
+		Symbol symbol = new Symbol(name, Optional.empty(), State.EXTERNAL);
+
 		// and something more...?
 
 		return symbol;
