@@ -83,6 +83,9 @@ public class Symbol {
 		Symbol symbol = new Symbol(name, Optional.empty(), State.REP_SECTION);
 		// TODO: symbol 객체의 address 할당하기.
 
+		Numeric numeric = new Numeric(address, symbol);
+		symbol._address = Optional.of(numeric);
+
 		return symbol;
 	}
 
@@ -134,6 +137,8 @@ public class Symbol {
 	 */
 	void assign(Numeric address) throws RuntimeException {
 		// TODO: 주소값 설정하기.
+
+		
 	}
 
 	private Symbol(String name, Optional<Numeric> address, State state) throws RuntimeException {

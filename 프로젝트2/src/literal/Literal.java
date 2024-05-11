@@ -21,6 +21,14 @@ public class Literal {
 	 */
 	Literal(String literal) throws RuntimeException {
 		// TODO: 리터럴 객체 초기화하기.
+
+		if (literal == null || literal.isEmpty()) {
+			throw new IllegalArgumentException("Literal string must not be null or empty.");
+		}
+
+		_literal = literal;
+		_address = Optional.empty();
+		_value = new Numeric(literal);
 	}
 
 	/**

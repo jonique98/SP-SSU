@@ -33,8 +33,8 @@ import instruction.InstructionTable;
 public class Assembler {
 	public static void main(String[] args) {
 		try {
-			Assembler assembler = new Assembler("inst_table.txt");
-			ArrayList<String> input = assembler.readInputFromFile("input.txt");
+			Assembler assembler = new Assembler("프로젝트2/inst_table.txt");
+			ArrayList<String> input = assembler.readInputFromFile("프로젝트2/input.txt");
 			ArrayList<ArrayList<String>> dividedInput = assembler.divideInput(input);
 			dividedInput.size();
 
@@ -42,25 +42,25 @@ public class Assembler {
 					.map(x -> assembler.pass1(x))
 					.collect(Collectors.toList());
 
-			String symbolsString = controlSections.stream()
-					.map(x -> x.getSymbolString())
-					.collect(Collectors.joining("\n\n"));
-			String literalsString = controlSections.stream()
-					.map(x -> x.getLiteralString())
-					.collect(Collectors.joining("\n\n"));
+			// String symbolsString = controlSections.stream()
+			// 		.map(x -> x.getSymbolString())
+			// 		.collect(Collectors.joining("\n\n"));
+			// String literalsString = controlSections.stream()
+			// 		.map(x -> x.getLiteralString())
+			// 		.collect(Collectors.joining("\n\n"));
 
-			assembler.writeStringToFile("output_symtab.txt", symbolsString);
-			assembler.writeStringToFile("output_littab.txt", literalsString);
+			// assembler.writeStringToFile("output_symtab.txt", symbolsString);
+			// assembler.writeStringToFile("output_littab.txt", literalsString);
 
-			ArrayList<ObjectCode> objectCodes = (ArrayList<ObjectCode>) controlSections.stream()
-					.map(x -> assembler.pass2(x))
-					.collect(Collectors.toList());
+			// ArrayList<ObjectCode> objectCodes = (ArrayList<ObjectCode>) controlSections.stream()
+			// 		.map(x -> assembler.pass2(x))
+			// 		.collect(Collectors.toList());
 
-			String objectCodesString = objectCodes.stream()
-					.map(x -> x.toString())
-					.collect(Collectors.joining("\n\n"));
+			// String objectCodesString = objectCodes.stream()
+			// 		.map(x -> x.toString())
+			// 		.collect(Collectors.joining("\n\n"));
 
-			assembler.writeStringToFile("output_objectcode.txt", objectCodesString);
+			// assembler.writeStringToFile("output_objectcode.txt", objectCodesString);
 		} catch (Exception e) {
 			System.out.println("Error : " + e.getMessage());
 		}
