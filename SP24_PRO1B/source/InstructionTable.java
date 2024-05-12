@@ -40,7 +40,8 @@ public class InstructionTable {
 
 		if (_instructionMap.containsKey(instructionName))
 			return Optional.of(_instructionMap.get(instructionName));
-		return Optional.empty();
+		else
+			return Optional.empty();
 	}
 
 	private ArrayList<String> readFile(String fileName) throws FileNotFoundException, IOException {

@@ -18,6 +18,9 @@ public class SymbolTable {
 	 */
 	public void putLabel(String label, int address) throws RuntimeException {
 		// TODO: EQU를 제외한 명령어/지시어의 label로 생성되는 심볼을 추가하기.
+
+		Symbol symbol = new Symbol(label, address);
+		symbolMap.put(label, symbol);
 	}
 
 	/**
@@ -69,8 +72,7 @@ public class SymbolTable {
 	 */
 	@Override
 	public String toString() {
-		// TODO: 심볼 테이블을 String으로 표현하기. Symbol 객체의 toString을 활용하자.
-		return "<SymbolTable.toString()>";
+		return symbolMap.values().stream().map(Symbol::toString).reduce("", (acc, s) -> acc + s + "\n");
 	}
 
 	/** 심볼 테이블. key: 심볼 명칭, value: 심볼 객체 */
@@ -117,7 +119,8 @@ class Symbol {
 	@Override
 	public String toString() {
 		// TODO: 심볼을 String으로 표현하기.
-		return "<Symbol.toString()>";
+		//address는 16진수
+		return String.format("%s\t%s", _name, Integer.toHexString(_address));
 	}
 
 	/** 심볼의 명칭 */

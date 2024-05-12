@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class LiteralTable {
 	/**
@@ -16,10 +17,16 @@ public class LiteralTable {
 	 * @throws RuntimeException 비정상적인 리터럴 서식
 	 */
 	public void putLiteral(String literal) throws RuntimeException {
-		// TODO: 리터럴을 literalMap에 추가하기.
-
 		Literal lit = new Literal(literal);
 		literalMap.put(literal, lit);
+	}
+
+	public void setLiteralAddress(String literal, int address) {
+		literalMap.get(literal).setAddress(address);
+	}
+
+	public Optional<Literal> searchLiteral(String literal) {
+		return Optional.ofNullable(literalMap.get(literal));
 	}
 
 	// TODO: 추가로 필요한 method 구현하기.
@@ -29,8 +36,9 @@ public class LiteralTable {
 	 */
 	@Override
 	public String toString() {
-		// TODO: 구현하기. Literal 객체의 toString을 활용하자.
-		return "<LiteralTable.toString()>";
+		return literalMap.values().stream()
+				.map(Literal::toString)
+				.collect(Collectors.joining("\n"));
 	}
 
 	/** 리터럴 맵. key: 리터럴 String, value: 리터럴 객체 */
@@ -72,7 +80,11 @@ class Literal {
 	 */
 	@Override
 	public String toString() {
-		
+		return String.format("%s %s", _literal, _address.map(Object::toString).orElse("not assigned"));
+	}
+
+	public void setAddress(int address) {
+		_address = Optional.of(address);
 	}
 
 	/** 리터럴 String */

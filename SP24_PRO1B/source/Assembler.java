@@ -23,7 +23,7 @@ public class Assembler {
 	public static void main(String[] args) {
 		try {
 			Assembler assembler = new Assembler("inst_table.txt");
-			ArrayList<String> input = assembler.readInputFromFile("source/input.txt");
+			ArrayList<String> input = assembler.readInputFromFile("input.txt");
 			ArrayList<ArrayList<String>> dividedInput = assembler.divideInput(input);
 			dividedInput.size();
 

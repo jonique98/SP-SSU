@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,32 +35,81 @@ public class ControlSection {
 			Optional<InstructionInfo> optInst = instTable.search(operator);
 			boolean isOperatorInstruction = optInst.isPresent();
 			if (isOperatorInstruction) {
-				int size = handlePass1InstructionStep(token, locctr, optInst.get());
+				locctr = handlePass1InstructionStep(token, locctr, _symbolTable, _literalTable, optInst.get());
+				// System.out.println(token.toString()); /** 디버깅 용도 */
 			} else {
-				// Token token = handlePass1DirectiveStep(stringToken, locctr, symTab, litTab);
-				// locctr += token.getSize();
-				// tokens.add(token);
+				locctr = handlePass1DirectiveStep(token, locctr, _symbolTable, _literalTable, operator);
 				// System.out.println(token.toString()); /** 디버깅 용도 */
 			}
 		}
 
-	
-
-		
 	}
 
-	int handlePass1InstructionStep(Token token, int locctr, InstructionInfo instInfo) {
+	int handlePass1InstructionStep(Token token, int locctr, SymbolTable _symbolTable, LiteralTable _literalTable, InstructionInfo instInfo) {
 		Optional<String> label = token.getLabel();
 
 		if(label.isPresent()) {
-			_symbolTable.put(label.get(), locctr);
+			_symbolTable.putLabel(label.get(), locctr);
 		}
 
 		ArrayList<String> operands = token.getOperands();
 
+		if (operands.get(0).startsWith("=")) {
+			_literalTable.putLiteral(operands.get(0));
+		}
 
 		int size = instInfo.getSize(token);
-		locctr += size;
+		token.setSize(size);
+		return (locctr + size);
+	}
+
+	int handlePass1DirectiveStep(Token token, int locctr, SymbolTable _symbolTable, LiteralTable _literalTable, String operator) {
+
+		// System.out.println("operator: " + operator);
+		switch (operator) {
+			case "START":
+				sectionLabel = token.getLabel();
+				startAddress = Optional.of(Integer.parseInt(token.getOperands().get(0), 16));
+				locctr = startAddress.get();
+				_symbolTable.putLabel(sectionLabel.get(), locctr);
+				System.out.println("symbolTable: " + _symbolTable.toString());
+				break;
+			case "CSECT":
+				sectionLabel = token.getLabel();
+				locctr = 0;
+				_symbolTable.putLabel(sectionLabel.get(), locctr);
+				break;
+			case "END":
+				break;
+			case "BYTE":
+				locctr += token.getOperands().get(0).length() - 3;
+				break;
+			case "WORD":
+				locctr += 3;
+				break;
+			case "RESB":
+				locctr += Integer.parseInt(token.getOperands().get(0));
+				break;
+			case "RESW":
+				locctr += 3 * Integer.parseInt(token.getOperands().get(0));
+				break;
+			case "EQU":
+				_symbolTable.putLabel(token.getLabel().get(), locctr, token.getOperands().get(0));
+				break;
+			case "EXTDEF":
+				for (String refer : token.getOperands()) {
+					_symbolTable.putRefer(refer);
+				}
+				break;
+			case "EXTREF":
+				for (String refer : token.getOperands()) {
+					_symbolTable.putRefer(refer);
+				}
+				break;
+			default:
+				break;
+		}
+		return locctr;
 	}
 
 	/**
@@ -107,4 +155,7 @@ public class ControlSection {
 
 	/** 리터럴 테이블 */
 	private LiteralTable _literalTable;
+
+	private Optional<String> sectionLabel;
+	private Optional<Integer> startAddress;
 }
