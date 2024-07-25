@@ -23,8 +23,6 @@ public class LiteralTable {
 		if (!literalMap.containsKey(literal)) {
 			literalMap.put(literal, new Literal(literal));
 		}
-
-
 	}
 
 	public void setLiteralAddress(String literal, int address) {
@@ -39,7 +37,11 @@ public class LiteralTable {
 		for (Literal lit : literalMap.values()) {
 			if (!lit.getAddress().isPresent()) {
 				lit.setAddress(address);
-				address += lit.getSize();
+				if(lit.getLiteral().equals("=3")){
+					address += 3;
+				}
+				else
+					address += lit.getSize();
 			}
 		}
 

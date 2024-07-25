@@ -393,7 +393,13 @@ public class ControlSection {
 				ArrayList<Literal> literals = _literalTable.getLiteralMap();
 				for (Literal lit : literals) {
 					String literal = lit.getLiteral();
-					String value = literal.substring(3, literal.length() - 1); // 리터럴에서 =X'...' 또는 =C'...' 부분만 추출
+					String value;
+					if (literal.contains("C") || literal.contains("X")){
+						value = literal.substring(3, literal.length() - 1); // 리터럴에서 =X'...' 또는 =C'...' 부분만 추출
+					}else {
+						value = literal.substring(1, literal.length());
+					}
+
 					if (literal.charAt(1) == 'X') {
 						if (value.length() % 2 != 0) {
 							value = "0" + value; // 짝수 길이가 아닐 경우 앞에 0을 추가
@@ -408,6 +414,12 @@ public class ControlSection {
 						}
 						objCode.addText(locctr, hexValue.toString());
 						locctr += value.length();
+					} else {
+						// =3을 그냥 000003으로 저장
+						StringBuilder hexValue = new StringBuilder();
+						hexValue.append(String.format("%06X", Integer.parseInt(value)));
+						objCode.addText(locctr, hexValue.toString());
+						locctr += 3;
 					}
 				}
 				break;

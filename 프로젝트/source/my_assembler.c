@@ -158,16 +158,24 @@ int is_in_extref(char *symbol, extref *extref_table, int extref_table_length) {
 
 // 앞의 c 혹은 x를 제외하고 ' 사이에 있 제외한 리터럴을 찾아서 리터럴만 반환해주는 함수
 char *get_literal(char *operand) {
-    char *literal = (char *)malloc(sizeof(char) * 20);
 
-    int j = 0;
-    int i = 3;
-    while (operand[i] != '\'') {
+
+    char *literal = (char *)malloc(sizeof(char) * 20);
+    
+
+    if (operand[1] == 'C' || operand[1] == 'X'){
+        int j = 0;
+        int i = 3;
+        while (operand[i] != '\'') {
         literal[j] = operand[i];
         i++;
         j++;
     }
-    return literal;
+        return literal;
+    } else {
+        return &operand[1];
+    }
+
 }
 
 //main program을 오브젝트 코드로 변환하는 함수
@@ -233,6 +241,7 @@ int init_main_program(int *assem_index,
                 for (int j = 0; j < leteral_len; j++) {
                     temp_assem_code = (temp_assem_code << 8) + main->literals[i][j];
                 }
+
                 main->text[text_table_index].text = temp_assem_code;
                 main->text[text_table_index].loc = text_loc;
                 main->text[text_table_index].operator = "LITERAL";
@@ -292,16 +301,25 @@ int init_main_program(int *assem_index,
                 int leteral_len = strlen(main->literals[i]);
                 int temp_assem_code = 0;
 
-                //리터럴을 한글자씩 16진수로 변환해서 assembled_code에 저장
-                // 예를들어 EOF는 454F46이 된다.
-                for (int j = 0; j < leteral_len; j++) {
-                    temp_assem_code = (temp_assem_code << 8) + main->literals[i][j];
-                }
-                main->text[text_table_index].text = temp_assem_code;
-                main->text[text_table_index].loc = text_loc;
-                main->text[text_table_index].operator = tokens[text_index]->operator;
-                text_table_index++;
-                text_loc += strlen(main->literals[i]);
+                    //만약 리터럴을 한글자씩 16진수로 변환해서 assembled_code에 저장
+                    // 예를들어 EOF는 454F46이 된다.
+                    if (strlen(main->literals[i]) == 1) {
+                        //3을 000003으로 저장해야함
+                        main->text[text_table_index].text = atoi(&main->literals[i][0]);
+                        main->text[text_table_index].loc = text_loc;
+                        main->text[text_table_index].operator = tokens[text_index]->operator;
+                        text_table_index++;
+                        continue ;
+                    }
+
+                    for (int j = 0; j < leteral_len; j++) {
+                        temp_assem_code = (temp_assem_code << 8) + main->literals[i][j];
+                    }
+                    main->text[text_table_index].text = temp_assem_code;
+                    main->text[text_table_index].loc = text_loc;
+                    main->text[text_table_index].operator = "LITERAL";
+                    text_table_index++;
+                    text_loc += strlen(main->literals[i]);
             }
             literal_length = 0;
             text_index++;
@@ -677,6 +695,14 @@ int init_subroutine(int *assem_index,
                     subroutine->text[text_table_index].operator = "LITERAL";
                     text_table_index++;
                     text_loc += literal_len / 2;
+                } 
+                else {
+                    // =3 이면 그냥 3으로 쓰면 댐
+                    subroutine->text[text_table_index].text = atoi(&subroutine->literals[i][1]);
+                    subroutine->text[text_table_index].loc = text_loc;
+                    subroutine->text[text_table_index].operator = "LITERAL";
+                    text_table_index++;
+                    text_loc += 3;
                 }
             }
             continue;
@@ -1022,22 +1048,29 @@ int make_objectcode_output(const char *filename, const object_code *obj_code) {
 
         }
 
-
         unsigned int text_start_addr = obj_code->main_program.text[prev_text_index].loc;
         unsigned int text_len = obj_code->main_program.text[cur_text_index].loc - text_start_addr;
+
+        //operator 출력
+        printf("operator : %s\n", obj_code->main_program.text[prev_text_index].operator);
+        printf("text_start_addr : %X\n", text_start_addr);
+        printf("text_len : %X\n", text_len);
+
 
         //T와 함계 시작주소와 텍스트 길이 16진수로 출력
         fprintf(fp, "T%06X%02X", text_start_addr, text_len);
 
 
         for(int i = prev_text_index; i < cur_text_index; i++) {
-            //if ltorg 면서 16진수 FF보다 작다면 2자리로 출력
-            if(strcmp(obj_code->main_program.text[i].operator, "LITERAL") == 0 && obj_code->main_program.text[i].text < 0xFF)
-                fprintf(fp, "00%02X", obj_code->main_program.text[i].text);
+            printf("text : %s\n", obj_code->main_program.text[i].operator);
+            if(strcmp(obj_code->main_program.text[i].operator, "LITERAL") == 0){
+                fprintf(fp, "%06X", obj_code->main_program.text[i].text);
+            }
             else if (strcmp(obj_code->main_program.text[i].operator, "WORD") == 0)
                 fprintf(fp, "%06X", obj_code->main_program.text[i].text);
-            else
-                fprintf(fp, "%04X", obj_code->main_program.text[i].text);
+            else{
+                fprintf(fp, "%06X", obj_code->main_program.text[i].text);
+            }
         }
         fprintf(fp, "\n");
 

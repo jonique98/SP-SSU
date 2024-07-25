@@ -280,8 +280,10 @@ int assem_pass1(const inst **inst_table, int inst_table_length,
 
                     if(literal_table[j]->literal[1] == 'C') {
                         loc += strlen(literal_table[j]->literal) - 4;
-                    } else {
+                    } else if (literal_table[j]->literal[1] == 'X'){
                         loc += (strlen(literal_table[j]->literal) - 4) / 2;
+                    } else {
+                        loc += 3;
                     }
 
                 }
@@ -296,8 +298,10 @@ int assem_pass1(const inst **inst_table, int inst_table_length,
 
                     if(literal_table[j]->literal[1] == 'C') {
                         loc += strlen(literal_table[j]->literal) - 4;
-                    } else {
+                    } else if (literal_table[j]->literal[1] == 'C'){
                         loc += (strlen(literal_table[j]->literal) - 4) / 2;
+                    } else {
+                        loc += 3;
                     }
                 }
                     break;
@@ -402,8 +406,10 @@ int assem_pass1(const inst **inst_table, int inst_table_length,
 
                     if(literal_table[j]->literal[1] == 'C') {
                         loc += strlen(literal_table[j]->literal) - 4;
-                    } else {
+                    } else if (literal_table[j]->literal[1] == 'X') {
                         loc += (strlen(literal_table[j]->literal) - 4) / 2;
+                    } else {
+                        loc += 3;
                     }
                 }
                 literal_cur = literal_len;
